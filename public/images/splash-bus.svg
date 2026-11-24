@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Soft Ground Shadow -->
+    <radialGradient id="bShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 3D School Bus Yellow Paint -->
+    <linearGradient id="bBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE055"/>
+      <stop offset="55%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <!-- Front Hood Shading -->
+    <linearGradient id="bHood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#EA9508"/>
+    </linearGradient>
+    <!-- Window Sky Glass -->
+    <linearGradient id="bGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E0F2FE"/>
+      <stop offset="100%" stop-color="#7DD3FC"/>
+    </linearGradient>
+    <!-- Metallic Bumper -->
+    <linearGradient id="bChrome" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F1F5F9"/>
+      <stop offset="50%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#64748B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ground Contact Shadow -->
+  <ellipse cx="215" cy="246" rx="175" ry="18" fill="url(#bShadow)" />
+
+  <!-- Rear & Front Tires (Side Perspective) -->
+  <!-- Far Front Left Tire -->
+  <ellipse cx="48" cy="212" rx="14" ry="22" fill="#1E293B" />
+  <!-- Near Front Right Tire -->
+  <g>
+    <ellipse cx="130" cy="222" rx="22" ry="28" fill="#0F172A" />
+    <ellipse cx="133" cy="222" rx="12" ry="16" fill="#94A3B8" />
+    <ellipse cx="134" cy="222" rx="6" ry="8" fill="#475569" />
+  </g>
+  <!-- Near Rear Right Tire -->
+  <g>
+    <ellipse cx="322" cy="208" rx="19" ry="25" fill="#0F172A" />
+    <ellipse cx="325" cy="208" rx="10" ry="14" fill="#94A3B8" />
+    <ellipse cx="326" cy="208" rx="5" ry="7" fill="#475569" />
+  </g>
+
+  <!-- Main Side Cabin Body (3/4 Perspective) -->
+  <path d="M138 68 L372 60 C388 60, 396 72, 396 92 L396 196 L138 220 Z" fill="url(#bBody)" stroke="#B45309" stroke-width="2" />
+  <!-- Roof Rounded Top -->
+  <path d="M62 66 Q102 48 156 54 L364 50 C384 50, 394 58, 394 68 L138 72 L62 72 Z" fill="#FDE047" />
+
+  <!-- Front Face & Windshield Section -->
+  <path d="M58 68 L142 66 L142 152 L44 152 L54 78 Z" fill="#FBBF24" stroke="#B45309" stroke-width="2" />
+
+  <!-- "SCHOOL BUS" Top Marquee Header -->
+  <path d="M64 62 L134 60 L134 79 L60 80 Z" fill="#0F172A" />
+  <text x="97" y="74" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="800" font-size="9" fill="#FFFFFF" letter-spacing="0.8">
+    SCHOOL BUS
+  </text>
+  <!-- Top Warning Lights -->
+  <circle cx="56" cy="70" r="4" fill="#EF4444" />
+  <circle cx="141" cy="68" r="4" fill="#EF4444" />
+
+  <!-- Front Split Windshield -->
+  <path d="M56 84 L96 83 L94 136 L48 136 Z" fill="url(#bGlass)" stroke="#0369A1" stroke-width="2" />
+  <path d="M100 83 L138 82 L138 136 L98 136 Z" fill="url(#bGlass)" stroke="#0369A1" stroke-width="2" />
+
+  <!-- Smiling Driver Inside Front Windshield -->
+  <g transform="translate(100, 96)">
+    <ellipse cx="18" cy="14" rx="9" ry="9" fill="#FED7AA" />
+    <path d="M9 10 Q18 4 27 10 Z" fill="#1E3A8A" />
+    <circle cx="15" cy="13" r="1.3" fill="#0F172A" />
+    <circle cx="21" cy="13" r="1.3" fill="#0F172A" />
+    <path d="M15 18 Q18 21 21 18" stroke="#0F172A" stroke-width="1.2" fill="none" />
+    <path d="M8 24 Q18 21 28 24 L28 39 L8 39 Z" fill="#1D4ED8" />
+  </g>
+
+  <!-- Long Front Hood -->
+  <path d="M44 142 L138 140 L118 186 L24 186 Z" fill="url(#bHood)" stroke="#B45309" stroke-width="2" />
+  <!-- Front Vertical Nose & Radiator Grille -->
+  <path d="M24 186 L118 186 L118 220 L24 220 Z" fill="#F59E0B" stroke="#B45309" stroke-width="2" />
+  <rect x="44" y="191" width="54" height="22" rx="4" fill="#1E293B" />
+  <line x1="48" y1="196" x2="94" y2="196" stroke="#64748B" stroke-width="2" />
+  <line x1="48" y1="202" x2="94" y2="202" stroke="#64748B" stroke-width="2" />
+  <line x1="48" y1="208" x2="94" y2="208" stroke="#64748B" stroke-width="2" />
+
+  <!-- Glossy Headlights -->
+  <circle cx="33" cy="202" r="7" fill="#FEF08A" stroke="#EA580C" stroke-width="2" />
+  <circle cx="109" cy="202" r="7" fill="#FEF08A" stroke="#EA580C" stroke-width="2" />
+
+  <!-- Metallic Chrome Front Bumper -->
+  <rect x="18" y="216" width="106" height="13" rx="6" fill="url(#bChrome)" stroke="#475569" stroke-width="1.5" />
+
+  <!-- Accordion Boarding Door (Side Front) -->
+  <path d="M154 90 L182 89 L182 214 L154 217 Z" fill="#1E293B" stroke="#0F172A" stroke-width="2" />
+  <rect x="158" y="96" width="8" height="46" rx="2" fill="url(#bGlass)" />
+  <rect x="170" y="96" width="8" height="46" rx="2" fill="url(#bGlass)" />
+  <rect x="158" y="152" width="8" height="44" rx="2" fill="#334155" />
+  <rect x="170" y="152" width="8" height="44" rx="2" fill="#334155" />
+
+  <!-- Side Passenger Windows with Happy Kids Inside -->
+  <g>
+    <!-- Window 1 -->
+    <rect x="196" y="88" width="38" height="40" rx="6" fill="url(#bGlass)" stroke="#0369A1" stroke-width="2" />
+    <circle cx="215" cy="110" r="9" fill="#8D5B4C" />
+    <circle cx="215" cy="102" r="8" fill="#1E293B" />
+    <path d="M204 128 Q215 118 226 128 Z" fill="#10B981" />
+
+    <!-- Window 2 -->
+    <rect x="242" y="86" width="38" height="40" rx="6" fill="url(#bGlass)" stroke="#0369A1" stroke-width="2" />
+    <circle cx="261" cy="108" r="9" fill="#FED7AA" />
+    <circle cx="261" cy="101" r="9" fill="#EA580C" />
+    <path d="M250 126 Q261 116 272 126 Z" fill="#F43F5E" />
+
+    <!-- Window 3 -->
+    <rect x="288" y="84" width="38" height="40" rx="6" fill="url(#bGlass)" stroke="#0369A1" stroke-width="2" />
+    <circle cx="307" cy="106" r="9" fill="#FDBA74" />
+    <circle cx="307" cy="99" r="8" fill="#451A03" />
+    <path d="M296 124 Q307 114 318 124 Z" fill="#3B82F6" />
+
+    <!-- Window 4 -->
+    <rect x="334" y="82" width="38" height="40" rx="6" fill="url(#bGlass)" stroke="#0369A1" stroke-width="2" />
+    <circle cx="353" cy="104" r="9" fill="#FED7AA" />
+    <circle cx="353" cy="97" r="8" fill="#7C2D12" />
+    <path d="M342 122 Q353 112 364 122 Z" fill="#EC4899" />
+  </g>
+
+  <!-- Signature Dark Side Stripe -->
+  <path d="M190 144 L394 134 L394 146 L190 156 Z" fill="#0F172A" />
+  <path d="M190 160 L394 150 L394 155 L190 165 Z" fill="#B45309" opacity="0.5" />
+
+  <!-- Side Mirrors -->
+  <path d="M46 96 L32 102 L32 132 L46 128 Z" fill="#1E293B" stroke="#D97706" stroke-width="2" />
+</svg>

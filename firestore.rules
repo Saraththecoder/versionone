@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if the user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    // Helper to check if a user belongs to a specific collection (role)
+    function isAdmin() {
+      return isAuth() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isDriver() {
+      return isAuth() && exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
+    }
+
+    function isStudent() {
+      return isAuth() && exists(/databases/$(database)/documents/students/$(request.auth.uid));
+    }
+
+    // Students Collection
+    match /students/{studentId} {
+      allow read: if isAuth() && (request.auth.uid == studentId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Drivers Collection
+    match /drivers/{driverId} {
+      // Drivers can read their own profile, admins can read all
+      allow read: if isAuth() && (request.auth.uid == driverId || isAdmin());
+      // Driver can update their own profile (e.g. currentBusId)
+      allow update: if isAuth() && request.auth.uid == driverId;
+      allow write: if isAdmin();
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isAuth() && (request.auth.uid == adminId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Buses Collection
+    match /buses/{busId} {
+      // Any authenticated user can read
+      allow read: if isAuth();
+      // Drivers can only update the bus they are currently assigned to (handled via client check, but enforced here if needed)
+      // Actually, driver should only be able to update if they are the currentDriverId or if they are setting themselves as currentDriverId.
+      allow update: if isDriver() && (
+        resource.data.currentDriverId == request.auth.uid || 
+        request.resource.data.currentDriverId == request.auth.uid
+      );
+      allow write: if isAdmin();
+    }
+
+    // Routes Collection
+    match /routes/{routeId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // Stops Collection
+    match /stops/{stopId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    
+    // Settings Collection
+    match /settings/{document=**} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+  }
+}

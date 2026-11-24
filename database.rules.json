@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "live": {
+      ".read": "auth != null",
+      "$busId": {
+        // Only allow writes if authenticated.
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['latitude', 'longitude', 'updatedAt', 'active', 'driverId']) && newData.child('latitude').isNumber() && newData.child('latitude').val() >= -90 && newData.child('latitude').val() <= 90 && newData.child('longitude').isNumber() && newData.child('longitude').val() >= -180 && newData.child('longitude').val() <= 180 && newData.child('updatedAt').isNumber() && newData.child('active').isBoolean() && newData.child('driverId').isString()"
+      }
+    }
+  }
+}

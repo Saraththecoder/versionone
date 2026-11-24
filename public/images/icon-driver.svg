@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Soft Ground Shadow -->
+    <radialGradient id="dShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 3D Skin Gradient -->
+    <radialGradient id="dSkin" cx="44%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#FFEAD8"/>
+      <stop offset="65%" stop-color="#FBC7A4"/>
+      <stop offset="100%" stop-color="#E39D75"/>
+    </radialGradient>
+    <!-- Neck Shadow -->
+    <linearGradient id="dNeck" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D48863"/>
+      <stop offset="100%" stop-color="#F6BE9A"/>
+    </linearGradient>
+    <!-- Navy Uniform Jacket 3D Gradient -->
+    <linearGradient id="dJacket" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#3A5B8C"/>
+      <stop offset="55%" stop-color="#223B61"/>
+      <stop offset="100%" stop-color="#111F36"/>
+    </linearGradient>
+    <!-- Driver Cap Crown 3D Gradient -->
+    <radialGradient id="dCap" cx="45%" cy="32%" r="65%">
+      <stop offset="0%" stop-color="#42679E"/>
+      <stop offset="60%" stop-color="#223D66"/>
+      <stop offset="100%" stop-color="#101E36"/>
+    </radialGradient>
+    <!-- Glossy Cap Visor -->
+    <linearGradient id="dVisor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#374151"/>
+      <stop offset="45%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </linearGradient>
+    <!-- Gold Emblem Gradient -->
+    <linearGradient id="dGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE57F"/>
+      <stop offset="50%" stop-color="#F5B727"/>
+      <stop offset="100%" stop-color="#B87708"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Soft Drop Shadow -->
+  <ellipse cx="120" cy="212" rx="70" ry="12" fill="url(#dShadow)" />
+
+  <!-- Navy Uniform Jacket Bust -->
+  <path d="M58 204 C58 160, 82 146, 120 146 C158 146, 182 160, 182 204 C182 210, 174 212, 164 212 L76 212 C66 212, 58 210, 58 204 Z" fill="url(#dJacket)" />
+
+  <!-- Crisp White Dress Shirt V-Front -->
+  <polygon points="100,146 140,146 120,198" fill="#FFFFFF" />
+
+  <!-- Dark Tie -->
+  <polygon points="116,154 124,154 122,163 118,163" fill="#132238" />
+  <polygon points="118,163 122,163 125,192 120,200 115,192" fill="#1B2F4D" />
+
+  <!-- White Collar Flaps -->
+  <polygon points="100,146 116,154 109,164 97,154" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.8" />
+  <polygon points="140,146 124,154 131,164 143,154" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.8" />
+
+  <!-- Jacket Lapels -->
+  <path d="M98 146 L112 198 L90 182 L84 152 Z" fill="#2A4873" />
+  <path d="M142 146 L128 198 L150 182 L156 152 Z" fill="#2A4873" />
+
+  <!-- Shoulder Epaulets & Gold Buttons -->
+  <rect x="66" y="153" width="22" height="7" rx="3" fill="#162844" transform="rotate(-12 66 153)" />
+  <circle cx="84" cy="153" r="2.5" fill="url(#dGold)" />
+  <rect x="152" y="149" width="22" height="7" rx="3" fill="#162844" transform="rotate(12 152 149)" />
+  <circle cx="156" cy="153" r="2.5" fill="url(#dGold)" />
+
+  <!-- Silver/Gold Breast Badge -->
+  <path d="M146 178 L154 176 L158 182 L152 188 L145 184 Z" fill="url(#dGold)" />
+
+  <!-- Neck -->
+  <rect x="106" y="124" width="28" height="28" rx="12" fill="url(#dNeck)" />
+
+  <!-- Ears -->
+  <ellipse cx="76" cy="96" rx="9" ry="12" fill="#F0B18B" />
+  <ellipse cx="77" cy="96" rx="5" ry="7" fill="#D48863" opacity="0.5" />
+  <ellipse cx="164" cy="96" rx="9" ry="12" fill="#F0B18B" />
+  <ellipse cx="163" cy="96" rx="5" ry="7" fill="#D48863" opacity="0.5" />
+
+  <!-- Neat Dark Hair Sideburns -->
+  <path d="M77 74 L83 74 L83 94 L77 92 Z" fill="#2B1E1A" />
+  <path d="M157 74 L163 74 L163 92 L157 94 Z" fill="#2B1E1A" />
+
+  <!-- 3D Rounded Face -->
+  <path d="M79 84 C79 58, 96 48, 120 48 C144 48, 161 58, 161 84 C161 116, 144 136, 120 136 C96 136, 79 116, 79 84 Z" fill="url(#dSkin)" />
+
+  <!-- Visor Cast Shadow Across Forehead -->
+  <path d="M79 74 Q120 82 161 74 L161 65 Q120 72 79 65 Z" fill="#C47855" opacity="0.28" />
+
+  <!-- Soft Cheek Tint -->
+  <ellipse cx="94" cy="105" rx="10" ry="6" fill="#FF8A8A" opacity="0.22" />
+  <ellipse cx="146" cy="105" rx="10" ry="6" fill="#FF8A8A" opacity="0.22" />
+
+  <!-- Eyebrows -->
+  <path d="M92 81 Q99 77 106 80" fill="none" stroke="#2D1E19" stroke-width="3" stroke-linecap="round" />
+  <path d="M134 80 Q141 77 148 81" fill="none" stroke="#2D1E19" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Eyes with Crisp Catchlights -->
+  <ellipse cx="99" cy="91" rx="4.5" ry="5.5" fill="#1C1917" />
+  <circle cx="97.5" cy="89" r="1.8" fill="#FFFFFF" />
+  <ellipse cx="141" cy="91" rx="4.5" ry="5.5" fill="#1C1917" />
+  <circle cx="139.5" cy="89" r="1.8" fill="#FFFFFF" />
+
+  <!-- Sculpted Nose -->
+  <path d="M117 98 Q120 105 123 98" fill="none" stroke="#D48863" stroke-width="2.4" stroke-linecap="round" />
+
+  <!-- Warm Friendly Smile -->
+  <path d="M107 114 Q120 123 133 114" fill="none" stroke="#9C4E3A" stroke-width="2.8" stroke-linecap="round" />
+
+  <!-- 3D Peaked Uniform Driver Cap -->
+  <path d="M74 58 C68 32, 92 22, 120 22 C148 22, 172 32, 166 58 L161 66 Q120 60 79 66 Z" fill="url(#dCap)" />
+  <!-- Cap Band -->
+  <path d="M78 58 Q120 51 162 58 L161 67 Q120 60 79 67 Z" fill="#132238" />
+  <!-- Gold Cap Piping -->
+  <path d="M79 65 Q120 58 161 65" fill="none" stroke="url(#dGold)" stroke-width="2" />
+  <!-- Gold Front Cap Emblem -->
+  <circle cx="120" cy="42" r="9.5" fill="url(#dGold)" />
+  <circle cx="120" cy="42" r="6" fill="#FFF7D6" opacity="0.45" />
+  <!-- Glossy Curved Visor -->
+  <path d="M77 65 Q120 58 163 65 C158 74, 140 76, 120 76 C100 76, 82 74, 77 65 Z" fill="url(#dVisor)" />
+  <!-- Visor Specular Glint -->
+  <path d="M88 67 Q120 63 148 67" fill="none" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />
+</svg>

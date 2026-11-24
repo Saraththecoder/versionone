@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%" fill="none">
+  <!-- Soft Blue Circle -->
+  <circle cx="60" cy="60" r="56" fill="#CFE2FE" />
+
+  <!-- Flagpole & Red/Amber Flag -->
+  <line x1="60" y1="22" x2="60" y2="42" stroke="#1E293B" stroke-width="2" />
+  <polygon points="60,24 74,29 60,34" fill="#EF4444" />
+
+  <!-- Triangle Pediment Roof -->
+  <polygon points="60,38 32,54 88,54" fill="#1E40AF" stroke="#1E3A8A" stroke-width="2" />
+  <!-- Clock in Pediment -->
+  <circle cx="60" cy="48" r="4.5" fill="#FFFFFF" stroke="#1E3A8A" stroke-width="1.5" />
+  <line x1="60" y1="48" x2="60" y2="45.5" stroke="#1E3A8A" stroke-width="1" />
+  <line x1="60" y1="48" x2="62" y2="48" stroke="#1E3A8A" stroke-width="1" />
+
+  <!-- Main School Building -->
+  <rect x="36" y="54" width="48" height="38" rx="3" fill="#FFFFFF" stroke="#93C5FD" stroke-width="2" />
+
+  <!-- Classical Pillars -->
+  <rect x="42" y="56" width="5" height="26" fill="#DBEAFE" />
+  <rect x="52" y="56" width="5" height="26" fill="#DBEAFE" />
+  <rect x="63" y="56" width="5" height="26" fill="#DBEAFE" />
+  <rect x="73" y="56" width="5" height="26" fill="#DBEAFE" />
+
+  <!-- Entrance Double Doors -->
+  <path d="M54 70 Q60 67 66 70 L66 92 L54 92 Z" fill="#1E3A8A" />
+
+  <!-- Steps Foundation -->
+  <rect x="30" y="92" width="60" height="6" rx="2" fill="#93C5FD" />
+  <rect x="26" y="98" width="68" height="5" rx="2" fill="#60A5FA" />
+</svg>
