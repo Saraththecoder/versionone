@@ -24,21 +24,27 @@ const BRANCH_MAP: Record<string, string> = {
   '04': 'ECE',
   '05': 'CSE',
   '12': 'IT',
+  '31': 'CSE (IoT)',
+  '32': 'CSE (Data Science)',
+  '33': 'CSE (AI & ML)',
+  '35': 'CSE (AI)',
   '42': 'AI & ML',
   '43': 'AI',
   '44': 'Data Science',
+  '45': 'AI & DS',
   '46': 'Cyber Security',
 };
 
-const AITS_ROLL_FULL_REGEX = /^(\d{2})70([15])([A-Z])([A-Z0-9]{2})([A-Z0-9]{2})$/;
-const AITS_ROLL_EMBEDDED_REGEX = /\d{2}70[15][A-Z][A-Z0-9]{4}/;
+// Supports both JNTUA AITS code (70, e.g. 23701A0501) and Annamacharya code (AK, e.g. 24AK1A33D8)
+const AITS_ROLL_FULL_REGEX = /^(\d{2})(70|AK)([15])([A-Z])([A-Z0-9]{2})([A-Z0-9]{2})$/;
+const AITS_ROLL_EMBEDDED_REGEX = /\d{2}(?:70|AK)[15][A-Z][A-Z0-9]{4}/;
 
 export function normalizeRollNo(raw: string): string {
   return raw.trim().toUpperCase().replace(/\s+/g, '');
 }
 
 /**
- * Extracts a valid AITS Roll No (e.g. 23701A0501) from raw barcode scanner text.
+ * Extracts a valid AITS Roll No (e.g. 24AK1A33D8 or 23701A0501) from raw barcode scanner text.
  */
 export function extractRollNoFromBarcode(raw: string): string | null {
   const cleaned = normalizeRollNo(raw);
@@ -50,7 +56,7 @@ export function extractRollNoFromBarcode(raw: string): string | null {
 }
 
 /**
- * Validates and decodes an AITS Roll No (YY 70 [1|5] Degree Branch Serial).
+ * Validates and decodes an AITS Roll No (YY [70|AK] [1|5] Degree Branch Serial).
  */
 export function parseAitsRollNo(raw: string): ParsedAitsRollNo {
   const rollNo = normalizeRollNo(raw);
@@ -64,11 +70,11 @@ export function parseAitsRollNo(raw: string): ParsedAitsRollNo {
     return {
       valid: false,
       rollNo,
-      reason: 'Enter a valid AITS Roll No (e.g. 23701A0501 — must include college code 70).',
+      reason: 'Enter a valid AITS Roll No (e.g. 24AK1A33D8 or 23701A0501).',
     };
   }
 
-  const [, yr, entryDigit, degreeCode, branchCode] = match;
+  const [, yr, , entryDigit, degreeCode, branchCode] = match;
   const batchYear = `20${yr}`;
   const entryType = entryDigit === '5' ? 'Lateral' : 'Regular';
   const degree = DEGREE_MAP[degreeCode] || `Program ${degreeCode}`;

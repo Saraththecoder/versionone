@@ -34,7 +34,15 @@ describe('aitsRollNo & inviteCode helpers', () => {
     expect(parsed.branch).toBe('CSE');
     expect(parsed.label).toBe('2023 Batch • B.Tech CSE');
 
+    const akParsed = parseAitsRollNo('24AK1A33D8');
+    expect(akParsed.valid).toBe(true);
+    expect(akParsed.rollNo).toBe('24AK1A33D8');
+    expect(akParsed.batchYear).toBe('2024');
+    expect(akParsed.branch).toBe('CSE (AI & ML)');
+    expect(akParsed.label).toBe('2024 Batch • B.Tech CSE (AI & ML)');
+
     expect(extractRollNoFromBarcode('ID:23701a0501\n')).toBe('23701A0501');
+    expect(extractRollNoFromBarcode('24AK1A33D8')).toBe('24AK1A33D8');
     expect(extractRollNoFromBarcode('RANDOM123')).toBeNull();
     expect(parseAitsRollNo('99999X0000').valid).toBe(false);
   });

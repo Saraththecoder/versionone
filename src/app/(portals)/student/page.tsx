@@ -395,7 +395,7 @@ export default function StudentPage() {
                     required
                     value={rollNo}
                     onChange={(e) => setRollNo(e.target.value.toUpperCase())}
-                    placeholder="Roll No (e.g. 23701A0501)"
+                    placeholder="Roll No (e.g. 24AK1A33D8)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
                   {parsedRoll.valid && (
@@ -511,7 +511,7 @@ export default function StudentPage() {
                     required
                     value={rollNo}
                     onChange={(e) => setRollNo(e.target.value.toUpperCase())}
-                    placeholder="Roll No (e.g. 23701A0501)"
+                    placeholder="Roll No (e.g. 24AK1A33D8)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
                   <button
