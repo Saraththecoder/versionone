@@ -2,9 +2,10 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
-import { AlertCircle, ChevronLeft, Mail, Lock, Sparkles } from 'lucide-react';
+import { AlertCircle, ChevronLeft, Mail, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { PasswordInputRow } from '@/components/ui/PasswordInputRow';
 
 export default function AdminLoginPage() {
   const { login, loginWithDemo } = useAuth();
@@ -83,16 +84,11 @@ export default function AdminLoginPage() {
                 className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
               />
             </div>
-            <div className="flex items-center px-4 h-12 gap-3">
-              <Lock className="w-4 h-4 text-[#8E8E93] shrink-0" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
-              />
-            </div>
+            <PasswordInputRow
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+            />
           </div>
 
           <div className="space-y-2.5">

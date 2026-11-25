@@ -32,14 +32,14 @@ define(['./workbox-4754cb34'], function (e) {
     e.precacheAndRoute(
       [
         {
-          url: '/_next/static/bK9u8MWmV0aKGn8GJgQYH/_buildManifest.js',
+          url: '/_next/static/UrGYJrWUhab4sKjBD5z1b/_buildManifest.js',
           revision: 'a8f47510f5feed11c7f7ce60d33d048a',
         },
         {
-          url: '/_next/static/bK9u8MWmV0aKGn8GJgQYH/_ssgManifest.js',
+          url: '/_next/static/UrGYJrWUhab4sKjBD5z1b/_ssgManifest.js',
           revision: 'b6652df95db52feb4daf4eca35380933',
         },
-        { url: '/_next/static/chunks/1636-0d4680699de9f33e.js', revision: '0d4680699de9f33e' },
+        { url: '/_next/static/chunks/1218-76eea973537b6377.js', revision: '76eea973537b6377' },
         { url: '/_next/static/chunks/1674-adca1a21a64925d4.js', revision: 'adca1a21a64925d4' },
         { url: '/_next/static/chunks/1770a7a7-5136ac798b0aea04.js', revision: '5136ac798b0aea04' },
         { url: '/_next/static/chunks/1966.b8f83f7ba376c962.js', revision: 'b8f83f7ba376c962' },
@@ -82,8 +82,8 @@ define(['./workbox-4754cb34'], function (e) {
           revision: '0353938beb627f87',
         },
         {
-          url: '/_next/static/chunks/app/(portals)/admin/page-0a469a68772c48d7.js',
-          revision: '0a469a68772c48d7',
+          url: '/_next/static/chunks/app/(portals)/admin/page-2f5826c29b02e121.js',
+          revision: '2f5826c29b02e121',
         },
         {
           url: '/_next/static/chunks/app/(portals)/admin/routes/page-e2f7df2ba7bb03d7.js',
@@ -106,8 +106,8 @@ define(['./workbox-4754cb34'], function (e) {
           revision: '7e172ac90471de9f',
         },
         {
-          url: '/_next/static/chunks/app/(portals)/driver/page-702d57e87b69e2d3.js',
-          revision: '702d57e87b69e2d3',
+          url: '/_next/static/chunks/app/(portals)/driver/page-6bb75d800f931b57.js',
+          revision: '6bb75d800f931b57',
         },
         {
           url: '/_next/static/chunks/app/(portals)/driver/summary/page-8dda66e379c1a636.js',
@@ -130,8 +130,8 @@ define(['./workbox-4754cb34'], function (e) {
           revision: '5d80fe003e010584',
         },
         {
-          url: '/_next/static/chunks/app/(portals)/student/page-8e8499e68301f0ac.js',
-          revision: '8e8499e68301f0ac',
+          url: '/_next/static/chunks/app/(portals)/student/page-8dd4994905b8d190.js',
+          revision: '8dd4994905b8d190',
         },
         {
           url: '/_next/static/chunks/app/(portals)/student/profile/page-5463575883613be0.js',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -19,7 +19,6 @@ import {
   ChevronLeft,
   Hash,
   Mail,
-  Lock,
   Bus,
   Phone,
   LayoutDashboard,
@@ -32,6 +31,7 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { SoundToggle } from '@/components/ui/SoundToggle';
+import { PasswordInputRow } from '@/components/ui/PasswordInputRow';
 import { IdBarcodeScannerModal } from '@/components/student/IdBarcodeScannerModal';
 import { triggerFeedback } from '@/lib/feedback';
 
@@ -117,6 +117,9 @@ export default function StudentPage() {
   const [selectedBus, setSelectedBus] = useState<BusOption>(BUS_OPTIONS[1]);
   const [loadingAction, setLoadingAction] = useState(false);
 
+  const mailInputRef = useRef<HTMLInputElement | null>(null);
+  const loginPasswordRef = useRef<HTMLInputElement | null>(null);
+
   const { location } = useRealtimeLocation(selectedBus.plate);
   const { route, stops } = useBusRoute(selectedBus.plate);
 
@@ -138,6 +141,13 @@ export default function StudentPage() {
     toast.success(
       info.label ? `ID Scanned: ${detectedRoll} (${info.label})` : `ID Scanned: ${detectedRoll}`
     );
+    setTimeout(() => {
+      if (step === 'signup' && !mail) {
+        mailInputRef.current?.focus();
+      } else if (step === 'login') {
+        loginPasswordRef.current?.focus();
+      }
+    }, 100);
   };
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
@@ -398,6 +408,7 @@ export default function StudentPage() {
                 <div className="flex items-center px-4 h-12 gap-3">
                   <Mail className="w-4 h-4 text-[#8E8E93] shrink-0" />
                   <input
+                    ref={mailInputRef}
                     type="email"
                     required
                     value={mail}
@@ -419,31 +430,21 @@ export default function StudentPage() {
                   />
                 </div>
 
-                <div className="flex items-center px-4 h-12 gap-3">
-                  <Lock className="w-4 h-4 text-[#8E8E93] shrink-0" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password (min 6 chars)"
-                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
-                  />
-                </div>
+                <PasswordInputRow
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password (min 6 chars)"
+                />
 
-                <div className="flex items-center px-4 h-12 gap-3">
-                  <Lock className="w-4 h-4 text-[#8E8E93] shrink-0" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm Password"
-                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
-                  />
-                </div>
+                <PasswordInputRow
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                />
               </div>
 
               <p className="text-[11px] text-[#8E8E93] text-center px-2">
@@ -527,17 +528,13 @@ export default function StudentPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center px-4 h-12 gap-3">
-                  <Lock className="w-4 h-4 text-[#8E8E93] shrink-0" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
-                  />
-                </div>
+                <PasswordInputRow
+                  ref={loginPasswordRef}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                />
               </div>
 
               <div className="space-y-3">
