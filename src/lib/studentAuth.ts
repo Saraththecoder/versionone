@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase/auth';
 import { db } from '@/lib/firebase/firestore';
 import { normalizeRollNo, parseAitsRollNo } from '@/lib/aitsRollNo';
 import { verifyBusInviteCode } from '@/lib/inviteCode';
+import { assertNotLockedOut, clearFailedAttempts, recordFailedAttempt } from '@/lib/security';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 
@@ -104,12 +105,17 @@ export async function registerStudentAccount(params: {
     throw new Error('Passwords do not match.');
   }
 
+  const signupLockKey = `signup:${rollNo}`;
+  assertNotLockedOut(signupLockKey);
+
   const inviteValid = await verifyBusInviteCode(inviteCode);
   if (!inviteValid) {
+    recordFailedAttempt(signupLockKey);
     throw new Error(
       'Invalid Bus Invite Code. Check your bus notice board or ask the transport coordinator.'
     );
   }
+  clearFailedAttempts(signupLockKey);
 
   const localAccounts = readLocalAccounts();
   if (localAccounts[rollNo]) {
@@ -167,10 +173,7 @@ export async function registerStudentAccount(params: {
 
   if (db) {
     try {
-      await setDoc(doc(db, 'students', uid), {
-        ...studentDoc,
-        passwordHash,
-      });
+      await setDoc(doc(db, 'students', uid), studentDoc);
     } catch {
       // Best-effort Firestore persistence
     }
@@ -193,6 +196,9 @@ export async function loginStudentWithRollNo(params: {
     throw new Error('Please enter your password.');
   }
 
+  const loginLockKey = `student:${rollNo}`;
+  assertNotLockedOut(loginLockKey);
+
   const localAccounts = readLocalAccounts();
   let record: StoredStudentRecord | undefined = localAccounts[rollNo];
 
@@ -210,11 +216,12 @@ export async function loginStudentWithRollNo(params: {
   }
 
   if (!record) {
+    recordFailedAttempt(loginLockKey);
     throw new Error(`No account found for Roll No ${rollNo}. Please sign up first.`);
   }
 
   const expectedHash = await hashPassword(rollNo, password);
-  let passwordValid = record.passwordHash === expectedHash;
+  let passwordValid = Boolean(record.passwordHash) && record.passwordHash === expectedHash;
 
   if (!passwordValid && auth && record.email) {
     try {
@@ -226,8 +233,15 @@ export async function loginStudentWithRollNo(params: {
   }
 
   if (!passwordValid) {
-    throw new Error(`Incorrect password for Roll No ${rollNo}.`);
+    const remaining = recordFailedAttempt(loginLockKey);
+    throw new Error(
+      remaining > 0
+        ? `Incorrect password for Roll No ${rollNo}. (${remaining} attempts remaining)`
+        : 'Too many failed attempts. Account temporarily locked for 60s.'
+    );
   }
+
+  clearFailedAttempts(loginLockKey);
 
   // Cache in local accounts if fetched from Firestore
   if (!localAccounts[rollNo]) {

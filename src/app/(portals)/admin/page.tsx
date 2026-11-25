@@ -6,31 +6,37 @@ import { AlertCircle, ChevronLeft, Mail, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PasswordInputRow } from '@/components/ui/PasswordInputRow';
+import { isDemoModeEnabled } from '@/lib/security';
+import { triggerFeedback } from '@/lib/feedback';
 
 export default function AdminLoginPage() {
-  const { login, loginWithDemo } = useAuth();
+  const { loginStaff, loginWithDemo } = useAuth();
   const router = useRouter();
+  const demoEnabled = isDemoModeEnabled();
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [adminId, setAdminId] = useState('admin@aitsrajampet.ac.in');
-  const [password, setPassword] = useState('••••••••');
+  const [adminId, setAdminId] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setIsLoggingIn(true);
       setError('');
-      await login('admin');
+      await loginStaff(adminId, password, 'admin');
+      triggerFeedback('success');
       router.push('/admin/dashboard');
     } catch (err: unknown) {
-      console.error(err);
+      triggerFeedback('error');
       setError(err instanceof Error ? err.message : 'Failed to log in.');
       setIsLoggingIn(false);
     }
   };
 
   const handleDemo = () => {
+    if (!demoEnabled) return;
     loginWithDemo('admin');
+    triggerFeedback('success');
     router.push('/admin/dashboard');
   };
 
@@ -77,7 +83,8 @@ export default function AdminLoginPage() {
             <div className="flex items-center px-4 h-12 gap-3">
               <Mail className="w-4 h-4 text-[#8E8E93] shrink-0" />
               <input
-                type="text"
+                type="email"
+                required
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
                 placeholder="Admin Email"
@@ -85,6 +92,7 @@ export default function AdminLoginPage() {
               />
             </div>
             <PasswordInputRow
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
@@ -104,14 +112,16 @@ export default function AdminLoginPage() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={handleDemo}
-              className="w-full h-11 bg-white text-[#007AFF] font-heading font-semibold text-[14px] rounded-[14px] apple-card flex items-center justify-center gap-1.5 motion-press cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Instant Demo Access</span>
-            </button>
+            {demoEnabled && (
+              <button
+                type="button"
+                onClick={handleDemo}
+                className="w-full h-11 bg-white text-[#007AFF] font-heading font-semibold text-[14px] rounded-[14px] apple-card flex items-center justify-center gap-1.5 motion-press cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Instant Demo Access</span>
+              </button>
+            )}
           </div>
         </form>
       </main>

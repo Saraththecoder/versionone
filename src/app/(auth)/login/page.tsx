@@ -5,12 +5,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { Bus, ChevronLeft, ChevronRight, Shield, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { isDemoModeEnabled } from '@/lib/security';
 
 export default function LoginPage() {
   const { loginWithDemo } = useAuth();
   const router = useRouter();
+  const demoEnabled = isDemoModeEnabled();
 
   const handleQuickDemo = () => {
+    if (!demoEnabled) return;
     loginWithDemo('student');
     toast.success('Demo Mode Active');
     router.push('/student/dashboard');
@@ -109,23 +112,25 @@ export default function LoginPage() {
               <ChevronRight className="w-5 h-5 text-[#C7C7CC]" />
             </button>
 
-            <button
-              onClick={handleQuickDemo}
-              className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7]/60 transition-colors motion-press cursor-pointer text-left"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-[#34C759]/12 text-[#248A3D] flex items-center justify-center">
-                  <Zap className="w-5 h-5" />
+            {demoEnabled && (
+              <button
+                onClick={handleQuickDemo}
+                className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7]/60 transition-colors motion-press cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-[#34C759]/12 text-[#248A3D] flex items-center justify-center">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-heading text-[15px] font-semibold text-[#1C1C1E]">
+                      Instant Demo
+                    </h2>
+                    <p className="text-[12px] text-[#8E8E93]">Preview Student Dashboard</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-heading text-[15px] font-semibold text-[#1C1C1E]">
-                    Instant Demo
-                  </h2>
-                  <p className="text-[12px] text-[#8E8E93]">Preview Student Dashboard</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-[#C7C7CC]" />
-            </button>
+                <ChevronRight className="w-5 h-5 text-[#C7C7CC]" />
+              </button>
+            )}
           </div>
         </div>
       </main>

@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase/auth';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { AnyUserDocument, UserRole } from '@/lib/schemas';
 import { AuthService } from '@/services/AuthService';
+import { isDemoModeEnabled, isDemoUid } from '@/lib/security';
 
 const ACTIVE_USER_KEY = 'aits_active_user';
 
@@ -96,7 +97,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (rawUser) {
         try {
           const parsed = JSON.parse(rawUser) as AnyUserDocument;
-          if (parsed && parsed.uid && parsed.role) {
+          const allowSession =
+            parsed && parsed.uid && parsed.role && (!isDemoUid(parsed.uid) || isDemoModeEnabled());
+          if (allowSession) {
             const timer = setTimeout(() => {
               setUserDoc(parsed);
               setUser({
@@ -107,25 +110,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setLoading(false);
             }, 0);
             return () => clearTimeout(timer);
+          } else {
+            localStorage.removeItem(ACTIVE_USER_KEY);
           }
         } catch {
           localStorage.removeItem(ACTIVE_USER_KEY);
         }
       }
 
-      const storedRole = localStorage.getItem('aits_demo_role') as UserRole | null;
-      if (storedRole && DEMO_USERS[storedRole]) {
-        const doc = DEMO_USERS[storedRole];
-        const timer = setTimeout(() => {
-          setUserDoc(doc);
-          setUser({
-            uid: doc.uid,
-            email: doc.email,
-            displayName: doc.name,
-          } as User);
-          setLoading(false);
-        }, 0);
-        return () => clearTimeout(timer);
+      if (isDemoModeEnabled()) {
+        const storedRole = localStorage.getItem('aits_demo_role') as UserRole | null;
+        if (storedRole && DEMO_USERS[storedRole]) {
+          const doc = DEMO_USERS[storedRole];
+          const timer = setTimeout(() => {
+            setUserDoc(doc);
+            setUser({
+              uid: doc.uid,
+              email: doc.email,
+              displayName: doc.name,
+            } as User);
+            setLoading(false);
+          }, 0);
+          return () => clearTimeout(timer);
+        }
+      } else {
+        localStorage.removeItem('aits_demo_role');
       }
     }
 

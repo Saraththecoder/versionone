@@ -7,6 +7,7 @@ import {
 } from './studentAuth';
 import { extractRollNoFromBarcode, parseAitsRollNo } from './aitsRollNo';
 import { getActiveBusInviteCode, rotateBusInviteCode, verifyBusInviteCode } from './inviteCode';
+import { clearFailedAttempts, isDemoUid } from './security';
 
 describe('aitsRollNo & inviteCode helpers', () => {
   beforeEach(() => {
@@ -163,12 +164,25 @@ describe('studentAuth (Roll No signup & login with Invite Code)', () => {
       })
     ).rejects.toThrow('already exists');
 
+    clearFailedAttempts('student:23701A0502');
+    for (let i = 0; i < 5; i++) {
+      await expect(
+        loginStudentWithRollNo({
+          rollNo: '23701A0502',
+          password: 'wrongpassword',
+        })
+      ).rejects.toThrow(/Incorrect password|Too many failed attempts/);
+    }
+
     await expect(
       loginStudentWithRollNo({
         rollNo: '23701A0502',
-        password: 'wrongpassword',
+        password: 'password1',
       })
-    ).rejects.toThrow('Incorrect password');
+    ).rejects.toThrow('Too many failed attempts');
+
+    expect(isDemoUid('demo-student-101')).toBe(true);
+    expect(isDemoUid('stu_24AK1A33D8_123')).toBe(false);
 
     await expect(
       loginStudentWithRollNo({

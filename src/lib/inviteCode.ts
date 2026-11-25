@@ -37,9 +37,26 @@ function writeLocalInviteCode(code: string): void {
 }
 
 /**
- * Resolves the active Bus Invite Code from Firestore (if configured), local cache, or default.
+ * Resolves the active Bus Invite Code (Admin view: prefers server API / Firestore / local).
  */
 export async function getActiveBusInviteCode(): Promise<string> {
+  if (typeof window !== 'undefined' && typeof fetch === 'function') {
+    try {
+      const res = await fetch('/api/invite-code', {
+        headers: { 'x-aits-role': 'admin' },
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { code?: string };
+        if (data.code) {
+          writeLocalInviteCode(data.code);
+          return data.code;
+        }
+      }
+    } catch {
+      // Fallback to Firestore / local when server API is unavailable (e.g. unit tests)
+    }
+  }
+
   if (db) {
     try {
       const snap = await getDoc(doc(db, 'settings', 'transit'));
@@ -52,7 +69,7 @@ export async function getActiveBusInviteCode(): Promise<string> {
         return formatted;
       }
     } catch {
-      // Fallback to local/env code when Firestore is unavailable or rules block reads
+      // Fallback to local/env code
     }
   }
 
@@ -60,13 +77,37 @@ export async function getActiveBusInviteCode(): Promise<string> {
 }
 
 /**
- * Checks if a user-submitted Bus Invite Code matches the active code (dash/case-insensitive).
+ * Checks if a user-submitted Bus Invite Code matches the active code.
+ * Uses server verification first in browser environments so secret codes stay server-side.
  */
 export async function verifyBusInviteCode(submittedCode: string): Promise<boolean> {
   const normalizedSubmitted = normalizeInviteCode(submittedCode);
   if (normalizedSubmitted.length < 4) return false;
 
-  const active = await getActiveBusInviteCode();
+  if (typeof window !== 'undefined' && typeof fetch === 'function') {
+    try {
+      const res = await fetch('/api/invite-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', code: submittedCode }),
+      });
+      if (res.status === 429) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error || 'Too many invalid invite code attempts. Try again later.');
+      }
+      if (res.ok) {
+        const data = (await res.json()) as { valid?: boolean };
+        return Boolean(data.valid);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes('Too many')) {
+        throw err;
+      }
+      // Fallback to local check in test environments
+    }
+  }
+
+  const active = readLocalInviteCode() || getEnvDefaultCode();
   return normalizedSubmitted === normalizeInviteCode(active);
 }
 
@@ -74,6 +115,28 @@ export async function verifyBusInviteCode(submittedCode: string): Promise<boolea
  * Generates or sets a new rotating Bus Invite Code (used by Admin).
  */
 export async function rotateBusInviteCode(customCode?: string): Promise<string> {
+  if (typeof window !== 'undefined' && typeof fetch === 'function') {
+    try {
+      const res = await fetch('/api/invite-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-aits-role': 'admin',
+        },
+        body: JSON.stringify({ action: 'rotate', customCode }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { code?: string };
+        if (data.code) {
+          writeLocalInviteCode(data.code);
+          return data.code;
+        }
+      }
+    } catch {
+      // Fallback to local/Firestore rotation in test environments
+    }
+  }
+
   let nextCode: string;
 
   if (customCode !== undefined) {
@@ -104,7 +167,7 @@ export async function rotateBusInviteCode(customCode?: string): Promise<string> 
         { merge: true }
       );
     } catch {
-      // Local rotation still succeeds even without Firestore write access
+      // Local rotation still succeeds
     }
   }
 

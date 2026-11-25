@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDriverTracking } from '@/hooks/useDriverTracking';
 import {
+  AlertCircle,
   ChevronLeft,
   User,
   Mail,
@@ -21,6 +22,7 @@ import Link from 'next/link';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { PasswordInputRow } from '@/components/ui/PasswordInputRow';
 import { triggerFeedback } from '@/lib/feedback';
+import { isDemoModeEnabled } from '@/lib/security';
 
 interface BusOption {
   num: number;
@@ -41,52 +43,64 @@ const BUS_OPTIONS: BusOption[] = [
 type DriverFlowStep = 'home' | 'signup' | 'login' | 'choose_bus' | 'ride_status';
 
 export default function DriverPage() {
-  const { login, loginWithDemo } = useAuth();
+  const { loginStaff, loginWithDemo } = useAuth();
   const { user } = useCurrentUser();
+  const demoEnabled = isDemoModeEnabled();
 
   const [step, setStep] = useState<DriverFlowStep>('home');
   const [username, setUsername] = useState('');
-  const [mail, setMail] = useState('driver.venkat@aitsrajampet.ac.in');
-  const [mobile, setMobile] = useState('+91 98480 22334');
-  const [password, setPassword] = useState('••••••••');
+  const [mail, setMail] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
   const [selectedBus, setSelectedBus] = useState<BusOption>(BUS_OPTIONS[1]);
   const [loadingAction, setLoadingAction] = useState(false);
 
   const { isTracking, health, startTracking, stopTracking, lastSentLocation } = useDriverTracking(
-    user?.uid || 'demo-driver-202',
+    user?.uid || 'unauthenticated-driver',
     selectedBus.plate
   );
 
   const handleSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!demoEnabled) {
+      triggerFeedback('error');
+      setAuthError('Driver self-signup is disabled. Contact Transport Admin for your credentials.');
+      return;
+    }
     setLoadingAction(true);
     setTimeout(() => {
       loginWithDemo('driver');
       setLoadingAction(false);
       triggerFeedback('success');
-      toast.success('Driver profile registered');
+      toast.success('Driver profile registered (Demo)');
       setStep('choose_bus');
     }, 350);
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setLoadingAction(true);
     try {
-      await login('driver');
+      await loginStaff(mail, password, 'driver');
       triggerFeedback('success');
-      toast.success('Signed in');
+      toast.success('Driver signed in');
+      setPassword('');
       setStep('choose_bus');
-    } catch {
-      loginWithDemo('driver');
-      triggerFeedback('success');
-      setStep('choose_bus');
+    } catch (err: unknown) {
+      triggerFeedback('error');
+      setAuthError(err instanceof Error ? err.message : 'Invalid driver credentials.');
     } finally {
       setLoadingAction(false);
     }
   };
 
   const handleQuickDemo = () => {
+    if (!demoEnabled) {
+      toast.error('Demo mode is disabled in production.');
+      return;
+    }
     loginWithDemo('driver');
     triggerFeedback('success');
     toast.success('Driver Demo Active');
@@ -204,16 +218,7 @@ export default function DriverPage() {
                 <button
                   onClick={() => {
                     triggerFeedback('tap');
-                    setStep('signup');
-                  }}
-                  className="w-full h-12 bg-white hover:bg-white/90 text-[#007AFF] font-heading font-semibold text-[16px] rounded-[14px] apple-card motion-press cursor-pointer"
-                >
-                  Driver Signup
-                </button>
-
-                <button
-                  onClick={() => {
-                    triggerFeedback('tap');
+                    setAuthError(null);
                     setStep('login');
                   }}
                   className="w-full h-12 bg-[#007AFF] hover:bg-[#0066D6] text-white font-heading font-semibold text-[16px] rounded-[14px] shadow-xs motion-press cursor-pointer"
@@ -221,13 +226,32 @@ export default function DriverPage() {
                   Driver Login
                 </button>
 
-                <button
-                  onClick={handleQuickDemo}
-                  className="w-full py-2.5 text-[13px] font-medium text-[#007AFF] hover:opacity-75 flex items-center justify-center gap-1.5 transition-opacity cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Skip to Choose Bus (Demo)</span>
-                </button>
+                {demoEnabled ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        triggerFeedback('tap');
+                        setAuthError(null);
+                        setStep('signup');
+                      }}
+                      className="w-full h-12 bg-white hover:bg-white/90 text-[#007AFF] font-heading font-semibold text-[16px] rounded-[14px] apple-card motion-press cursor-pointer"
+                    >
+                      Driver Signup (Dev)
+                    </button>
+
+                    <button
+                      onClick={handleQuickDemo}
+                      className="w-full py-2.5 text-[13px] font-medium text-[#007AFF] hover:opacity-75 flex items-center justify-center gap-1.5 transition-opacity cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Skip to Choose Bus (Demo)</span>
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-[11px] text-[#8E8E93] text-center px-3 pt-1">
+                    Authorized drivers only. Accounts are issued by the Transport Admin.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -338,15 +362,22 @@ export default function DriverPage() {
                 </h1>
               </div>
 
+              {authError && (
+                <div className="bg-[#FF3B30]/12 text-[#D70015] px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <p>{authError}</p>
+                </div>
+              )}
+
               <div className="apple-card rounded-[16px] overflow-hidden divide-y divide-black/[0.06]">
                 <div className="flex items-center px-4 h-12 gap-3">
                   <User className="w-4 h-4 text-[#8E8E93] shrink-0" />
                   <input
-                    type="text"
+                    type="email"
                     required
                     value={mail}
                     onChange={(e) => setMail(e.target.value)}
-                    placeholder="Username"
+                    placeholder="Driver Email"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
                   />
                 </div>

@@ -34,6 +34,7 @@ import { SoundToggle } from '@/components/ui/SoundToggle';
 import { PasswordInputRow } from '@/components/ui/PasswordInputRow';
 import { IdBarcodeScannerModal } from '@/components/student/IdBarcodeScannerModal';
 import { triggerFeedback } from '@/lib/feedback';
+import { isDemoModeEnabled } from '@/lib/security';
 
 const Map = dynamic(() => import('@/components/map/Map').then((mod) => mod.Map), {
   ssr: false,
@@ -104,6 +105,7 @@ export default function StudentPage() {
   const router = useRouter();
   const { loginWithDemo, setActiveSession } = useAuth();
   const { user } = useCurrentUser();
+  const demoEnabled = isDemoModeEnabled();
 
   const [step, setStep] = useState<FlowStep>('home');
   const [rollNo, setRollNo] = useState('');
@@ -202,6 +204,7 @@ export default function StudentPage() {
   };
 
   const handleQuickDemo = () => {
+    if (!demoEnabled) return;
     loginWithDemo('student');
     triggerFeedback('success');
     toast.success('Demo Mode Active');
@@ -317,13 +320,15 @@ export default function StudentPage() {
                   Student Login
                 </button>
 
-                <button
-                  onClick={handleQuickDemo}
-                  className="w-full py-2.5 text-[13px] font-medium text-[#007AFF] hover:opacity-75 flex items-center justify-center gap-1.5 transition-opacity cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Skip to Choose Bus (Demo)</span>
-                </button>
+                {demoEnabled && (
+                  <button
+                    onClick={handleQuickDemo}
+                    className="w-full py-2.5 text-[13px] font-medium text-[#007AFF] hover:opacity-75 flex items-center justify-center gap-1.5 transition-opacity cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Skip to Choose Bus (Demo)</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -550,13 +555,15 @@ export default function StudentPage() {
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleQuickDemo}
-                  className="w-full h-11 bg-white text-[#007AFF] font-heading font-semibold text-[14px] rounded-[14px] apple-card motion-press cursor-pointer"
-                >
-                  Instant Demo Login
-                </button>
+                {demoEnabled && (
+                  <button
+                    type="button"
+                    onClick={handleQuickDemo}
+                    className="w-full h-11 bg-white text-[#007AFF] font-heading font-semibold text-[14px] rounded-[14px] apple-card motion-press cursor-pointer"
+                  >
+                    Instant Demo Login
+                  </button>
+                )}
 
                 <button
                   type="button"

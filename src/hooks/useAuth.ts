@@ -3,21 +3,26 @@
 import { AuthService } from '@/services/AuthService';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { UserRole } from '@/lib/schemas';
+import { isDemoModeEnabled } from '@/lib/security';
 
 export function useAuth() {
   const { loading, user, userDoc, loginWithDemo, setActiveSession, clearDemo } = useAuthContext();
 
   const login = async (role: UserRole) => {
-    try {
-      return await AuthService.loginWithGoogle(role);
-    } catch (err: unknown) {
-      console.warn(
-        'Firebase Google login failed or blocked, activating demo session for testing:',
-        err
-      );
-      // Fallback seamlessly to demo user so developers & evaluators are never blocked
-      return loginWithDemo(role);
+    return AuthService.loginWithGoogle(role);
+  };
+
+  const loginStaff = async (email: string, password: string, role: 'admin' | 'driver') => {
+    const doc = await AuthService.loginStaffWithCredentials(email, password, role);
+    setActiveSession(doc);
+    return doc;
+  };
+
+  const guardedDemoLogin = (role: UserRole) => {
+    if (!isDemoModeEnabled()) {
+      throw new Error('Demo access is disabled in production.');
     }
+    return loginWithDemo(role);
   };
 
   const logout = async () => {
@@ -33,7 +38,8 @@ export function useAuth() {
     isAuthenticated: !!user || !!userDoc,
     loading,
     login,
-    loginWithDemo,
+    loginStaff,
+    loginWithDemo: guardedDemoLogin,
     setActiveSession,
     logout,
   };
