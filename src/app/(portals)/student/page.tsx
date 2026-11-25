@@ -10,7 +10,9 @@ import {
   registerStudentAccount,
   loginStudentWithRollNo,
   updateStudentAssignedBus,
+  normalizeRollNo,
 } from '@/lib/studentAuth';
+import { parseAitsRollNo } from '@/lib/aitsRollNo';
 import { StudentDocument } from '@/lib/schemas';
 import dynamic from 'next/dynamic';
 import {
@@ -23,10 +25,14 @@ import {
   LayoutDashboard,
   Sparkles,
   AlertCircle,
+  ScanBarcode,
+  KeyRound,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { SoundToggle } from '@/components/ui/SoundToggle';
+import { IdBarcodeScannerModal } from '@/components/student/IdBarcodeScannerModal';
 import { triggerFeedback } from '@/lib/feedback';
 
 const Map = dynamic(() => import('@/components/map/Map').then((mod) => mod.Map), {
@@ -104,6 +110,9 @@ export default function StudentPage() {
   const [mail, setMail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [scannedRollNo, setScannedRollNo] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedBus, setSelectedBus] = useState<BusOption>(BUS_OPTIONS[1]);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -111,9 +120,24 @@ export default function StudentPage() {
   const { location } = useRealtimeLocation(selectedBus.plate);
   const { route, stops } = useBusRoute(selectedBus.plate);
 
+  const parsedRoll = parseAitsRollNo(rollNo);
+  const isScannedMatch =
+    Boolean(scannedRollNo) && normalizeRollNo(rollNo) === scannedRollNo && parsedRoll.valid;
+
   const switchStep = (next: FlowStep) => {
     setAuthError(null);
     setStep(next);
+  };
+
+  const handleBarcodeDetected = (detectedRoll: string) => {
+    setRollNo(detectedRoll);
+    setScannedRollNo(detectedRoll);
+    setAuthError(null);
+    setScannerOpen(false);
+    const info = parseAitsRollNo(detectedRoll);
+    toast.success(
+      info.label ? `ID Scanned: ${detectedRoll} (${info.label})` : `ID Scanned: ${detectedRoll}`
+    );
   };
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
@@ -126,12 +150,15 @@ export default function StudentPage() {
         email: mail,
         password,
         confirmPassword,
+        inviteCode,
+        verifiedViaIdScan: isScannedMatch,
       });
       setActiveSession(studentDoc);
       triggerFeedback('success');
       toast.success(`Account created for ${studentDoc.rollNo}`);
       setPassword('');
       setConfirmPassword('');
+      setInviteCode('');
       switchStep('choose_bus');
     } catch (err: unknown) {
       triggerFeedback('error');
@@ -316,6 +343,39 @@ export default function StudentPage() {
                 </div>
               )}
 
+              {/* Scan College ID Card Trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  triggerFeedback('tap');
+                  setScannerOpen(true);
+                }}
+                className="w-full apple-card rounded-[16px] px-4 py-3 flex items-center justify-between hover:bg-white/90 transition-colors motion-press cursor-pointer"
+              >
+                <div className="flex items-center gap-3 text-left">
+                  <div className="w-9 h-9 rounded-xl bg-[#007AFF]/12 text-[#007AFF] flex items-center justify-center shrink-0">
+                    <ScanBarcode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-heading text-[14px] font-semibold text-[#1C1C1E]">
+                      {isScannedMatch ? 'College ID Verified' : 'Scan College ID Barcode'}
+                    </p>
+                    <p className="text-[11px] text-[#8E8E93]">
+                      {isScannedMatch
+                        ? `${rollNo} • ${parsedRoll.label}`
+                        : 'Auto-fill Roll No from your AITS ID card'}
+                    </p>
+                  </div>
+                </div>
+                {isScannedMatch ? (
+                  <CheckCircle2 className="w-5 h-5 text-[#34C759] shrink-0" />
+                ) : (
+                  <span className="text-[12px] font-semibold text-[#007AFF] bg-[#007AFF]/10 px-2.5 py-1 rounded-full shrink-0">
+                    Scan
+                  </span>
+                )}
+              </button>
+
               {/* Apple Grouped Inset Form */}
               <div className="apple-card rounded-[16px] overflow-hidden divide-y divide-black/[0.06]">
                 <div className="flex items-center px-4 h-12 gap-3">
@@ -328,6 +388,11 @@ export default function StudentPage() {
                     placeholder="Roll No (e.g. 23701A0501)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
+                  {parsedRoll.valid && (
+                    <span className="text-[10px] font-semibold text-[#248A3D] bg-[#34C759]/12 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
+                      {parsedRoll.branch}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center px-4 h-12 gap-3">
@@ -339,6 +404,18 @@ export default function StudentPage() {
                     onChange={(e) => setMail(e.target.value)}
                     placeholder="Mail (college email)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center px-4 h-12 gap-3">
+                  <KeyRound className="w-4 h-4 text-[#8E8E93] shrink-0" />
+                  <input
+                    type="text"
+                    required
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="Bus Invite Code (e.g. AITS-2026)"
+                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
                 </div>
 
@@ -368,6 +445,10 @@ export default function StudentPage() {
                   />
                 </div>
               </div>
+
+              <p className="text-[11px] text-[#8E8E93] text-center px-2">
+                Ask your bus driver or check the bus notice board for the current Bus Invite Code.
+              </p>
 
               <div className="space-y-3">
                 <button
@@ -432,6 +513,18 @@ export default function StudentPage() {
                     placeholder="Roll No (e.g. 23701A0501)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerFeedback('tap');
+                      setScannerOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg bg-[#007AFF]/10 text-[#007AFF] hover:bg-[#007AFF]/20 transition-colors shrink-0 cursor-pointer"
+                    title="Scan College ID Barcode"
+                    aria-label="Scan College ID Barcode"
+                  >
+                    <ScanBarcode className="w-4 h-4" />
+                  </button>
                 </div>
 
                 <div className="flex items-center px-4 h-12 gap-3">
@@ -593,6 +686,12 @@ export default function StudentPage() {
       <footer className="py-3 text-center">
         <p className="text-[11px] text-[#8E8E93] font-medium">AITS Campus Transit • Student</p>
       </footer>
+
+      <IdBarcodeScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleBarcodeDetected}
+      />
     </div>
   );
 }

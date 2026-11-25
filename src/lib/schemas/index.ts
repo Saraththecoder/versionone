@@ -13,6 +13,9 @@ export const StudentSchema = BaseUserSchema.extend({
   role: z.literal('student'),
   rollNo: z.string().optional(),
   assignedBusId: z.string().optional(),
+  batchYear: z.string().optional(),
+  branchLabel: z.string().optional(),
+  verifiedViaIdScan: z.boolean().optional(),
 });
 export type StudentDocument = z.infer<typeof StudentSchema>;
 

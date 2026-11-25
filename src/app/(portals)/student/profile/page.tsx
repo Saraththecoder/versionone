@@ -35,6 +35,11 @@ export default function StudentProfile() {
               <h2 className="font-heading text-[16px] font-semibold text-[#1C1C1E]">
                 {studentUser.rollNo || user.name}
               </h2>
+              {studentUser.branchLabel && (
+                <p className="text-[11px] font-semibold text-[#007AFF] mt-0.5">
+                  {studentUser.branchLabel}
+                </p>
+              )}
               <div className="flex items-center gap-1 text-[12px] text-[#8E8E93] mt-0.5">
                 <Mail className="w-3.5 h-3.5" />
                 <span className="truncate max-w-[170px]">{user.email}</span>

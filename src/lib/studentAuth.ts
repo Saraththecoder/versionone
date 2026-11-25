@@ -3,8 +3,12 @@
 import { StudentDocument } from '@/lib/schemas';
 import { auth } from '@/lib/firebase/auth';
 import { db } from '@/lib/firebase/firestore';
+import { normalizeRollNo, parseAitsRollNo } from '@/lib/aitsRollNo';
+import { verifyBusInviteCode } from '@/lib/inviteCode';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+
+export { normalizeRollNo };
 
 const ACCOUNTS_STORAGE_KEY = 'aits_student_accounts';
 
@@ -16,10 +20,9 @@ interface StoredStudentRecord {
   passwordHash: string;
   createdAt: number;
   assignedBusId?: string;
-}
-
-export function normalizeRollNo(rollNo: string): string {
-  return rollNo.trim().toUpperCase().replace(/\s+/g, '');
+  batchYear?: string;
+  branchLabel?: string;
+  verifiedViaIdScan?: boolean;
 }
 
 async function hashPassword(rollNo: string, password: string): Promise<string> {
@@ -68,6 +71,9 @@ function toStudentDoc(record: StoredStudentRecord): StudentDocument {
     role: 'student',
     createdAt: record.createdAt,
     assignedBusId: record.assignedBusId,
+    batchYear: record.batchYear,
+    branchLabel: record.branchLabel,
+    verifiedViaIdScan: record.verifiedViaIdScan,
   };
 }
 
@@ -76,14 +82,18 @@ export async function registerStudentAccount(params: {
   email: string;
   password: string;
   confirmPassword: string;
+  inviteCode: string;
+  verifiedViaIdScan?: boolean;
 }): Promise<StudentDocument> {
-  const rollNo = normalizeRollNo(params.rollNo);
-  const email = params.email.trim().toLowerCase();
-  const { password, confirmPassword } = params;
-
-  if (rollNo.length < 3) {
-    throw new Error('Please enter a valid Roll No (at least 3 characters).');
+  const parsed = parseAitsRollNo(params.rollNo);
+  if (!parsed.valid) {
+    throw new Error(parsed.reason || 'Please enter a valid AITS Roll No.');
   }
+
+  const rollNo = parsed.rollNo;
+  const email = params.email.trim().toLowerCase();
+  const { password, confirmPassword, inviteCode, verifiedViaIdScan } = params;
+
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new Error('Please enter a valid college email address.');
   }
@@ -92,6 +102,13 @@ export async function registerStudentAccount(params: {
   }
   if (password !== confirmPassword) {
     throw new Error('Passwords do not match.');
+  }
+
+  const inviteValid = await verifyBusInviteCode(inviteCode);
+  if (!inviteValid) {
+    throw new Error(
+      'Invalid Bus Invite Code. Check your bus notice board or ask the transport coordinator.'
+    );
   }
 
   const localAccounts = readLocalAccounts();
@@ -138,6 +155,9 @@ export async function registerStudentAccount(params: {
     email,
     passwordHash,
     createdAt: Date.now(),
+    batchYear: parsed.batchYear,
+    branchLabel: parsed.label,
+    verifiedViaIdScan: Boolean(verifiedViaIdScan),
   };
 
   localAccounts[rollNo] = record;
@@ -167,7 +187,7 @@ export async function loginStudentWithRollNo(params: {
   const { password } = params;
 
   if (!rollNo) {
-    throw new Error('Please enter your Roll No.');
+    throw new Error('Please enter or scan your Roll No.');
   }
   if (!password) {
     throw new Error('Please enter your password.');

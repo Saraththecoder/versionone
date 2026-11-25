@@ -3,8 +3,22 @@
 import { useEffect, useState } from 'react';
 import { useAdminLiveTracking } from '@/hooks/useAdminLiveTracking';
 import { BusRepository } from '@/repositories/BusRepository';
+import { getActiveBusInviteCode, rotateBusInviteCode } from '@/lib/inviteCode';
+import { triggerFeedback } from '@/lib/feedback';
 import dynamic from 'next/dynamic';
-import { Activity, Bus, Users, Map as MapIcon, Radio, BellRing, ChevronRight } from 'lucide-react';
+import {
+  Activity,
+  Bus,
+  Users,
+  Map as MapIcon,
+  Radio,
+  BellRing,
+  ChevronRight,
+  KeyRound,
+  Copy,
+  RefreshCw,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 const AdminLiveMap = dynamic(
@@ -15,12 +29,40 @@ const AdminLiveMap = dynamic(
 export default function AdminDashboard() {
   const { locations, loading: locLoading } = useAdminLiveTracking();
   const [totalBuses, setTotalBuses] = useState(0);
+  const [inviteCode, setInviteCode] = useState('...');
+  const [rotatingCode, setRotatingCode] = useState(false);
 
   useEffect(() => {
     BusRepository.getAllBuses()
       .then((buses) => setTotalBuses(buses.length))
       .catch(console.error);
+    getActiveBusInviteCode().then(setInviteCode).catch(console.error);
   }, []);
+
+  const handleCopyInviteCode = async () => {
+    try {
+      await navigator.clipboard?.writeText(inviteCode);
+      triggerFeedback('select');
+      toast.success(`Copied invite code ${inviteCode}`);
+    } catch {
+      toast.info(`Active code: ${inviteCode}`);
+    }
+  };
+
+  const handleRotateInviteCode = async () => {
+    setRotatingCode(true);
+    try {
+      const next = await rotateBusInviteCode();
+      setInviteCode(next);
+      triggerFeedback('success');
+      toast.success(`Rotated Bus Invite Code to ${next}`);
+    } catch {
+      triggerFeedback('error');
+      toast.error('Failed to rotate invite code.');
+    } finally {
+      setRotatingCode(false);
+    }
+  };
 
   const activeTripsCount = Object.values(locations).filter((loc) => loc.active).length;
 
@@ -110,7 +152,52 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
-      {/* 3. Live Telemetry Map */}
+      {/* 3. Rotating Bus Invite Code Control */}
+      <div className="apple-card rounded-[24px] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-[#FF9500]/14 text-[#FF9500] flex items-center justify-center shrink-0">
+            <KeyRound className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93]">
+              Student Signup Gate
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <h3 className="font-display text-[20px] font-bold tracking-wide text-[#1C1C1E] tabular-nums">
+                {inviteCode}
+              </h3>
+              <span className="text-[10px] font-semibold text-[#248A3D] bg-[#34C759]/12 px-2 py-0.5 rounded-full">
+                Active
+              </span>
+            </div>
+            <p className="text-[12px] text-[#8E8E93]">
+              Share on bus notice boards; rotate anytime to block outsiders.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleCopyInviteCode}
+            className="h-10 px-4 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] text-[13px] font-semibold flex items-center gap-1.5 motion-press cursor-pointer"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            <span>Copy</span>
+          </button>
+          <button
+            type="button"
+            disabled={rotatingCode}
+            onClick={handleRotateInviteCode}
+            className="h-10 px-4 rounded-full bg-[#1C1C1E] hover:bg-[#2C2C2E] text-white text-[13px] font-semibold flex items-center gap-1.5 motion-press cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${rotatingCode ? 'animate-spin' : ''}`} />
+            <span>Rotate Code</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4. Live Telemetry Map */}
       <div className="apple-card rounded-[24px] overflow-hidden">
         <div className="p-4 md:p-5 border-b border-black/[0.06] flex items-center justify-between">
           <div className="flex items-center gap-3">

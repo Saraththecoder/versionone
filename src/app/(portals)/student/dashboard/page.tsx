@@ -34,7 +34,7 @@ export default function StudentDashboard() {
       <header className="flex items-center justify-between px-1">
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-wider text-[#8E8E93]">
-            AITS Transit
+            {studentUser?.branchLabel || 'AITS Transit'}
           </p>
           <h1 className="font-heading text-[28px] font-bold tracking-[-0.025em] text-[#1C1C1E] leading-tight">
             Hello, {studentUser?.rollNo || user.name.split(' ')[0]}
