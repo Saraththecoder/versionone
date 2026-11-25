@@ -11,6 +11,7 @@ const BaseUserSchema = z.object({
 // Student Schema (Collection: students)
 export const StudentSchema = BaseUserSchema.extend({
   role: z.literal('student'),
+  rollNo: z.string().optional(),
   assignedBusId: z.string().optional(),
 });
 export type StudentDocument = z.infer<typeof StudentSchema>;

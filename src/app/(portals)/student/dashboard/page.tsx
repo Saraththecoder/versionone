@@ -37,13 +37,13 @@ export default function StudentDashboard() {
             AITS Transit
           </p>
           <h1 className="font-heading text-[28px] font-bold tracking-[-0.025em] text-[#1C1C1E] leading-tight">
-            Hello, {user.name.split(' ')[0]}
+            Hello, {studentUser?.rollNo || user.name.split(' ')[0]}
           </h1>
         </div>
 
         <Link href="/student/profile">
-          <div className="w-10 h-10 rounded-full bg-[#007AFF] text-white font-heading font-semibold flex items-center justify-center text-[15px] shadow-xs motion-press">
-            {user.name.charAt(0)}
+          <div className="w-10 h-10 rounded-full bg-[#007AFF] text-white font-heading font-semibold flex items-center justify-center text-[13px] shadow-xs motion-press">
+            {(studentUser?.rollNo || user.name).slice(0, 2)}
           </div>
         </Link>
       </header>

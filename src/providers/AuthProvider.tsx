@@ -6,9 +6,12 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { AnyUserDocument, UserRole } from '@/lib/schemas';
 import { AuthService } from '@/services/AuthService';
 
+const ACTIVE_USER_KEY = 'aits_active_user';
+
 const DEMO_USERS: Record<UserRole, AnyUserDocument> = {
   student: {
     uid: 'demo-student-101',
+    rollNo: '23701A0501',
     email: 'rahul.sharma@aits.ac.in',
     name: 'Rahul Sharma',
     createdAt: Date.now(),
@@ -39,6 +42,7 @@ interface AuthContextType {
   loading: boolean;
   role: UserRole | null;
   loginWithDemo: (role: UserRole) => AnyUserDocument;
+  setActiveSession: (doc: AnyUserDocument) => void;
   clearDemo: () => void;
 }
 
@@ -48,6 +52,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   role: null,
   loginWithDemo: () => DEMO_USERS.student,
+  setActiveSession: () => {},
   clearDemo: () => {},
 });
 
@@ -56,8 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userDoc, setUserDoc] = useState<AnyUserDocument | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loginWithDemo = (role: UserRole): AnyUserDocument => {
-    const doc = DEMO_USERS[role];
+  const setActiveSession = (doc: AnyUserDocument): void => {
     setUserDoc(doc);
     setUser({
       uid: doc.uid,
@@ -65,8 +69,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       displayName: doc.name,
     } as User);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('aits_demo_role', role);
+      localStorage.setItem(ACTIVE_USER_KEY, JSON.stringify(doc));
+      localStorage.setItem('aits_demo_role', doc.role);
     }
+  };
+
+  const loginWithDemo = (role: UserRole): AnyUserDocument => {
+    const doc = DEMO_USERS[role];
+    setActiveSession(doc);
     return doc;
   };
 
@@ -75,12 +85,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserDoc(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('aits_demo_role');
+      localStorage.removeItem(ACTIVE_USER_KEY);
     }
   };
 
   useEffect(() => {
-    // 1. Check if user activated demo session asynchronously so effect stays clean
+    // 1. Check persisted session (registered student account or demo user)
     if (typeof window !== 'undefined') {
+      const rawUser = localStorage.getItem(ACTIVE_USER_KEY);
+      if (rawUser) {
+        try {
+          const parsed = JSON.parse(rawUser) as AnyUserDocument;
+          if (parsed && parsed.uid && parsed.role) {
+            const timer = setTimeout(() => {
+              setUserDoc(parsed);
+              setUser({
+                uid: parsed.uid,
+                email: parsed.email,
+                displayName: parsed.name,
+              } as User);
+              setLoading(false);
+            }, 0);
+            return () => clearTimeout(timer);
+          }
+        } catch {
+          localStorage.removeItem(ACTIVE_USER_KEY);
+        }
+      }
+
       const storedRole = localStorage.getItem('aits_demo_role') as UserRole | null;
       if (storedRole && DEMO_USERS[storedRole]) {
         const doc = DEMO_USERS[storedRole];
@@ -132,6 +164,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loading,
         role: userDoc?.role || null,
         loginWithDemo,
+        setActiveSession,
         clearDemo,
       }}
     >

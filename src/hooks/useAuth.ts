@@ -5,7 +5,7 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { UserRole } from '@/lib/schemas';
 
 export function useAuth() {
-  const { loading, user, userDoc, loginWithDemo, clearDemo } = useAuthContext();
+  const { loading, user, userDoc, loginWithDemo, setActiveSession, clearDemo } = useAuthContext();
 
   const login = async (role: UserRole) => {
     try {
@@ -34,6 +34,7 @@ export function useAuth() {
     loading,
     login,
     loginWithDemo,
+    setActiveSession,
     logout,
   };
 }

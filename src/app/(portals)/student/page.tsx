@@ -3,10 +3,27 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useRealtimeLocation } from '@/hooks/useRealtimeLocation';
 import { useBusRoute } from '@/hooks/useBusRoute';
+import {
+  registerStudentAccount,
+  loginStudentWithRollNo,
+  updateStudentAssignedBus,
+} from '@/lib/studentAuth';
+import { StudentDocument } from '@/lib/schemas';
 import dynamic from 'next/dynamic';
-import { ChevronLeft, User, Mail, Lock, Bus, Phone, LayoutDashboard, Sparkles } from 'lucide-react';
+import {
+  ChevronLeft,
+  Hash,
+  Mail,
+  Lock,
+  Bus,
+  Phone,
+  LayoutDashboard,
+  Sparkles,
+  AlertCircle,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { SoundToggle } from '@/components/ui/SoundToggle';
@@ -79,43 +96,69 @@ type FlowStep = 'home' | 'signup' | 'login' | 'choose_bus' | 'map';
 
 export default function StudentPage() {
   const router = useRouter();
-  const { login, loginWithDemo } = useAuth();
+  const { loginWithDemo, setActiveSession } = useAuth();
+  const { user } = useCurrentUser();
 
   const [step, setStep] = useState<FlowStep>('home');
-  const [username, setUsername] = useState('');
-  const [mail, setMail] = useState('student@aitsrajampet.ac.in');
-  const [password, setPassword] = useState('••••••••');
-  const [confirmPassword, setConfirmPassword] = useState('••••••••');
+  const [rollNo, setRollNo] = useState('');
+  const [mail, setMail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
   const [selectedBus, setSelectedBus] = useState<BusOption>(BUS_OPTIONS[1]);
   const [loadingAction, setLoadingAction] = useState(false);
 
   const { location } = useRealtimeLocation(selectedBus.plate);
   const { route, stops } = useBusRoute(selectedBus.plate);
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const switchStep = (next: FlowStep) => {
+    setAuthError(null);
+    setStep(next);
+  };
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setLoadingAction(true);
-    setTimeout(() => {
-      loginWithDemo('student');
-      setLoadingAction(false);
+    try {
+      const studentDoc = await registerStudentAccount({
+        rollNo,
+        email: mail,
+        password,
+        confirmPassword,
+      });
+      setActiveSession(studentDoc);
       triggerFeedback('success');
-      toast.success('Account created');
-      setStep('choose_bus');
-    }, 350);
+      toast.success(`Account created for ${studentDoc.rollNo}`);
+      setPassword('');
+      setConfirmPassword('');
+      switchStep('choose_bus');
+    } catch (err: unknown) {
+      triggerFeedback('error');
+      setAuthError(err instanceof Error ? err.message : 'Failed to create account.');
+    } finally {
+      setLoadingAction(false);
+    }
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setLoadingAction(true);
     try {
-      await login('student');
+      const studentDoc = await loginStudentWithRollNo({ rollNo, password });
+      setActiveSession(studentDoc);
       triggerFeedback('success');
-      toast.success('Signed in');
-      setStep('choose_bus');
-    } catch {
-      loginWithDemo('student');
-      triggerFeedback('success');
-      setStep('choose_bus');
+      toast.success(`Welcome back, ${studentDoc.rollNo}`);
+      setPassword('');
+      if (studentDoc.assignedBusId) {
+        const matched = BUS_OPTIONS.find((b) => b.plate === studentDoc.assignedBusId);
+        if (matched) setSelectedBus(matched);
+      }
+      switchStep('choose_bus');
+    } catch (err: unknown) {
+      triggerFeedback('error');
+      setAuthError(err instanceof Error ? err.message : 'Invalid Roll No or password.');
     } finally {
       setLoadingAction(false);
     }
@@ -125,14 +168,18 @@ export default function StudentPage() {
     loginWithDemo('student');
     triggerFeedback('success');
     toast.success('Demo Mode Active');
-    setStep('choose_bus');
+    switchStep('choose_bus');
   };
 
-  const handleBusSelect = (bus: BusOption) => {
+  const handleBusSelect = async (bus: BusOption) => {
     triggerFeedback('select');
     setSelectedBus(bus);
+    if (user && user.role === 'student') {
+      const updated = await updateStudentAssignedBus(user as StudentDocument, bus.plate);
+      setActiveSession(updated);
+    }
     toast.info(`Tracking Bus ${bus.num} (${bus.plate})`);
-    setStep('map');
+    switchStep('map');
   };
 
   const stepTitles: Record<FlowStep, string> = {
@@ -162,7 +209,7 @@ export default function StudentPage() {
               type="button"
               onClick={() => {
                 triggerFeedback('tap');
-                setStep(step === 'map' ? 'choose_bus' : 'home');
+                switchStep(step === 'map' ? 'choose_bus' : 'home');
               }}
               className="flex items-center gap-0.5 text-[15px] font-medium text-[#007AFF] hover:opacity-75 transition-opacity cursor-pointer"
             >
@@ -207,7 +254,7 @@ export default function StudentPage() {
                     Student Transit
                   </h1>
                   <p className="text-[13px] text-[#8E8E93] leading-snug max-w-[260px] mx-auto">
-                    Sign in or create an account to pick your bus and track it live.
+                    Create an account or log in with your Roll No to track your bus live.
                   </p>
                 </div>
               </div>
@@ -216,7 +263,7 @@ export default function StudentPage() {
                 <button
                   onClick={() => {
                     triggerFeedback('tap');
-                    setStep('signup');
+                    switchStep('signup');
                   }}
                   className="w-full h-12 bg-white hover:bg-white/90 text-[#007AFF] font-heading font-semibold text-[16px] rounded-[14px] apple-card motion-press cursor-pointer"
                 >
@@ -226,7 +273,7 @@ export default function StudentPage() {
                 <button
                   onClick={() => {
                     triggerFeedback('tap');
-                    setStep('login');
+                    switchStep('login');
                   }}
                   className="w-full h-12 bg-[#007AFF] hover:bg-[#0066D6] text-white font-heading font-semibold text-[16px] rounded-[14px] shadow-xs motion-press cursor-pointer"
                 >
@@ -245,7 +292,7 @@ export default function StudentPage() {
           )}
 
           {/* ========================================================== */}
-          {/* SCREEN 2: STUDENT SIGNUP                                   */}
+          {/* SCREEN 2: STUDENT SIGNUP (Roll No, Mail, Password, Confirm)*/}
           {/* ========================================================== */}
           {step === 'signup' && (
             <form onSubmit={handleSignupSubmit} className="space-y-5">
@@ -262,17 +309,24 @@ export default function StudentPage() {
                 </h1>
               </div>
 
+              {authError && (
+                <div className="bg-[#FF3B30]/12 text-[#D70015] px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <p>{authError}</p>
+                </div>
+              )}
+
               {/* Apple Grouped Inset Form */}
               <div className="apple-card rounded-[16px] overflow-hidden divide-y divide-black/[0.06]">
                 <div className="flex items-center px-4 h-12 gap-3">
-                  <User className="w-4 h-4 text-[#8E8E93] shrink-0" />
+                  <Hash className="w-4 h-4 text-[#8E8E93] shrink-0" />
                   <input
                     type="text"
                     required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Username"
-                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
+                    value={rollNo}
+                    onChange={(e) => setRollNo(e.target.value.toUpperCase())}
+                    placeholder="Roll No (e.g. 23701A0501)"
+                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
                 </div>
 
@@ -283,7 +337,7 @@ export default function StudentPage() {
                     required
                     value={mail}
                     onChange={(e) => setMail(e.target.value)}
-                    placeholder="Mail"
+                    placeholder="Mail (college email)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
                   />
                 </div>
@@ -293,9 +347,10 @@ export default function StudentPage() {
                   <input
                     type="password"
                     required
+                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    placeholder="Password (min 6 chars)"
                     className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
                   />
                 </div>
@@ -305,6 +360,7 @@ export default function StudentPage() {
                   <input
                     type="password"
                     required
+                    minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm Password"
@@ -322,13 +378,16 @@ export default function StudentPage() {
                   {loadingAction ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    'Sign Up'
+                    'Create Account'
                   )}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setStep('login')}
+                  onClick={() => {
+                    triggerFeedback('tap');
+                    switchStep('login');
+                  }}
                   className="w-full text-[13px] font-medium text-[#8E8E93] hover:text-[#1C1C1E] transition-colors cursor-pointer"
                 >
                   Already have an account? <span className="text-[#007AFF]">Log In</span>
@@ -338,7 +397,7 @@ export default function StudentPage() {
           )}
 
           {/* ========================================================== */}
-          {/* SCREEN 3: STUDENT LOGIN                                    */}
+          {/* SCREEN 3: STUDENT LOGIN (Roll No & Password)               */}
           {/* ========================================================== */}
           {step === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-5">
@@ -355,16 +414,23 @@ export default function StudentPage() {
                 </h1>
               </div>
 
+              {authError && (
+                <div className="bg-[#FF3B30]/12 text-[#D70015] px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <p>{authError}</p>
+                </div>
+              )}
+
               <div className="apple-card rounded-[16px] overflow-hidden divide-y divide-black/[0.06]">
                 <div className="flex items-center px-4 h-12 gap-3">
-                  <User className="w-4 h-4 text-[#8E8E93] shrink-0" />
+                  <Hash className="w-4 h-4 text-[#8E8E93] shrink-0" />
                   <input
                     type="text"
                     required
-                    value={mail}
-                    onChange={(e) => setMail(e.target.value)}
-                    placeholder="Username"
-                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none"
+                    value={rollNo}
+                    onChange={(e) => setRollNo(e.target.value.toUpperCase())}
+                    placeholder="Roll No (e.g. 23701A0501)"
+                    className="w-full bg-transparent text-[15px] text-[#1C1C1E] placeholder:text-[#C7C7CC] focus:outline-none uppercase"
                   />
                 </div>
 
@@ -404,7 +470,10 @@ export default function StudentPage() {
 
                 <button
                   type="button"
-                  onClick={() => setStep('signup')}
+                  onClick={() => {
+                    triggerFeedback('tap');
+                    switchStep('signup');
+                  }}
                   className="w-full text-[13px] font-medium text-[#8E8E93] hover:text-[#1C1C1E] transition-colors cursor-pointer"
                 >
                   New student? <span className="text-[#007AFF]">Create Account</span>
@@ -419,6 +488,9 @@ export default function StudentPage() {
           {step === 'choose_bus' && (
             <div className="space-y-4">
               <div className="px-1">
+                <p className="text-[12px] font-semibold text-[#007AFF]">
+                  {(user as StudentDocument | null)?.rollNo || user?.name || 'Student'}
+                </p>
                 <h1 className="font-heading text-[24px] font-bold tracking-[-0.02em] text-[#1C1C1E]">
                   Choose Bus No
                 </h1>
@@ -480,6 +552,7 @@ export default function StudentPage() {
 
                   <a
                     href="tel:+919848022334"
+                    onClick={() => triggerFeedback('tap')}
                     className="w-10 h-10 rounded-full bg-[#34C759]/14 text-[#248A3D] flex items-center justify-center motion-press shrink-0"
                     title="Call Transport"
                   >
@@ -489,7 +562,10 @@ export default function StudentPage() {
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
-                    onClick={() => setStep('choose_bus')}
+                    onClick={() => {
+                      triggerFeedback('tap');
+                      switchStep('choose_bus');
+                    }}
                     className="h-10 bg-[#E5E5EA]/70 hover:bg-[#E5E5EA] text-[#1C1C1E] font-heading font-semibold text-[13px] rounded-[12px] flex items-center justify-center gap-1.5 motion-press cursor-pointer"
                   >
                     <Bus className="w-3.5 h-3.5" />
@@ -497,7 +573,10 @@ export default function StudentPage() {
                   </button>
 
                   <button
-                    onClick={() => router.push('/student/dashboard')}
+                    onClick={() => {
+                      triggerFeedback('tap');
+                      router.push('/student/dashboard');
+                    }}
                     className="h-10 bg-[#007AFF] hover:bg-[#0066D6] text-white font-heading font-semibold text-[13px] rounded-[12px] flex items-center justify-center gap-1.5 motion-press cursor-pointer"
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />

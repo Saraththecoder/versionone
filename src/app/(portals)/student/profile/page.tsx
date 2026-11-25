@@ -28,11 +28,13 @@ export default function StudentProfile() {
       <div className="apple-card rounded-[28px] p-5 space-y-5">
         <div className="flex items-center justify-between border-b border-black/[0.06] pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#007AFF] text-white font-heading font-bold rounded-full flex items-center justify-center text-[18px]">
-              {user.name.charAt(0)}
+            <div className="w-12 h-12 bg-[#007AFF] text-white font-heading font-bold rounded-full flex items-center justify-center text-[15px]">
+              {(studentUser.rollNo || user.name).slice(0, 2)}
             </div>
             <div>
-              <h2 className="font-heading text-[16px] font-semibold text-[#1C1C1E]">{user.name}</h2>
+              <h2 className="font-heading text-[16px] font-semibold text-[#1C1C1E]">
+                {studentUser.rollNo || user.name}
+              </h2>
               <div className="flex items-center gap-1 text-[12px] text-[#8E8E93] mt-0.5">
                 <Mail className="w-3.5 h-3.5" />
                 <span className="truncate max-w-[170px]">{user.email}</span>
@@ -73,7 +75,7 @@ export default function StudentProfile() {
           </div>
           <div className="flex items-center gap-1 text-[11px] font-semibold text-[#8E8E93] tabular-nums">
             <Hash className="w-3 h-3" />
-            <span>AITS-TRAN-2026-X992</span>
+            <span>AITS-{studentUser.rollNo || 'TRAN-2026-X992'}</span>
           </div>
         </div>
 
