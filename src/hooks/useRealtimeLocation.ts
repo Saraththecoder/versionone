@@ -16,7 +16,7 @@ export function useRealtimeLocation(busId: string | null) {
   });
 
   useEffect(() => {
-    if (!busId) return;
+    if (!busId || !rtdb) return;
 
     const locationRef = ref(rtdb, `live/${busId}`);
 
@@ -39,8 +39,8 @@ export function useRealtimeLocation(busId: string | null) {
     };
   }, [busId]);
 
-  const loading = Boolean(busId && state.busId !== busId);
-  const location = busId && state.busId === busId ? state.location : null;
+  const loading = Boolean(busId && rtdb && state.busId !== busId);
+  const location = busId && rtdb && state.busId === busId ? state.location : null;
 
   return { location, loading };
 }

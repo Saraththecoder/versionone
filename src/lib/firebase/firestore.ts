@@ -3,12 +3,24 @@ import {
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  Firestore,
 } from 'firebase/firestore';
-import { app } from './config';
+import { app, isFirebaseConfigured } from './config';
 
-export const db =
-  typeof window !== 'undefined'
-    ? initializeFirestore(app, {
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-      })
-    : getFirestore(app);
+let dbInstance: Firestore | null = null;
+
+if (typeof window !== 'undefined' && isFirebaseConfigured) {
+  try {
+    dbInstance = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    });
+  } catch {
+    try {
+      dbInstance = getFirestore(app);
+    } catch (e) {
+      console.warn('Firebase Firestore init skipped:', e);
+    }
+  }
+}
+
+export const db = dbInstance as Firestore;

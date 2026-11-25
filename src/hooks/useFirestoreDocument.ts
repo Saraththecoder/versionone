@@ -21,7 +21,7 @@ export function useFirestoreDocument<T = DocumentData>(
   const activeKey = docId ? `${collectionName}:${docId}` : null;
 
   useEffect(() => {
-    if (!docId || !activeKey) return;
+    if (!docId || !activeKey || !db) return;
 
     const docRef = doc(db, collectionName, docId);
 
@@ -47,9 +47,9 @@ export function useFirestoreDocument<T = DocumentData>(
     return () => unsubscribe();
   }, [collectionName, docId, activeKey]);
 
-  const loading = Boolean(activeKey && state.key !== activeKey);
-  const data = activeKey && state.key === activeKey ? state.data : null;
-  const error = activeKey && state.key === activeKey ? state.error : null;
+  const loading = Boolean(activeKey && db && state.key !== activeKey);
+  const data = activeKey && db && state.key === activeKey ? state.data : null;
+  const error = activeKey && db && state.key === activeKey ? state.error : null;
 
   return { data, loading, error };
 }

@@ -11,6 +11,10 @@ export function useAdminLiveTracking() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    if (!rtdb) {
+      const timer = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(timer);
+    }
     const liveRef = ref(rtdb, `live`);
 
     const unsubscribe = onValue(

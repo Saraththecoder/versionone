@@ -7,6 +7,9 @@ export class AuthService {
   private static provider = new GoogleAuthProvider();
 
   static async loginWithGoogle(role: UserRole = 'student'): Promise<AnyUserDocument> {
+    if (!auth) {
+      throw new Error('Firebase Auth is not configured.');
+    }
     const result = await signInWithPopup(auth, this.provider);
     const user = result.user;
 
@@ -42,6 +45,7 @@ export class AuthService {
   }
 
   static async logout(): Promise<void> {
+    if (!auth) return;
     await signOut(auth);
   }
 

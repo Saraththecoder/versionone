@@ -19,6 +19,7 @@ export class FirestoreService {
    * Fetch a single document by its ID
    */
   static async getDocument<T = DocumentData>(path: string, id: string): Promise<T | null> {
+    if (!db) return null;
     const docRef = doc(db, path, id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -34,6 +35,7 @@ export class FirestoreService {
     path: string,
     constraints: QueryConstraint[] = []
   ): Promise<T[]> {
+    if (!db) return [];
     const q = query(collection(db, path), ...constraints);
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map((doc) => doc.data() as T);
@@ -48,6 +50,7 @@ export class FirestoreService {
     data: Partial<T>,
     merge = true
   ): Promise<void> {
+    if (!db) return;
     const docRef = doc(db, path, id);
     await setDoc(docRef, data, { merge });
   }
@@ -60,6 +63,7 @@ export class FirestoreService {
     id: string,
     data: UpdateData<T>
   ): Promise<void> {
+    if (!db) return;
     const docRef = doc(db, path, id);
     await updateDoc(docRef, data as UpdateData<DocumentData>);
   }
@@ -68,6 +72,7 @@ export class FirestoreService {
    * Delete a document
    */
   static async deleteDocument(path: string, id: string): Promise<void> {
+    if (!db) return;
     const docRef = doc(db, path, id);
     await deleteDoc(docRef);
   }

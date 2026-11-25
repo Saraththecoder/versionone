@@ -97,7 +97,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
 
-    // 2. Listen to Firebase Auth state
+    // 2. Listen to Firebase Auth state (skip gracefully if Firebase is not configured)
+    if (!auth) {
+      const timer = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(timer);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
 
